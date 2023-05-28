@@ -41,7 +41,7 @@ This is a command line tool for managing vector embeddings database. It uses [La
 
 ## Commands
 
-### list_indices
+### list-indices
 
 **Command:**
 
@@ -55,7 +55,7 @@ Lists all the indices stored in the directory specified by the `VDB_DIR` environ
 
 ---
 
-### create_index
+### create-index
 
 **Command:**
 
@@ -69,7 +69,7 @@ Creates an index named `<index_name>` from the text file `<input_file>`. Text fr
 
 ---
 
-### describe_index
+### describe-index
 
 **Command:**
 
@@ -97,7 +97,7 @@ Prints the content of the specified index, including both the text and metadata 
 
 ---
 
-### search_similarity
+### search-similarity
 
 **Command:**
 
@@ -125,7 +125,7 @@ Q & A with GPT using the relevant information from the index.
 
 ---
 
-### search_keyword
+### search-keyword
 
 **Command:**
 
@@ -139,7 +139,7 @@ Searches the specified index for documents that contain the provided keyword. Pr
 
 ---
 
-### insert_text
+### insert-text
 
 **Command:**
 
@@ -153,7 +153,7 @@ Inserts text from the file `<input_file>` into the specified index. The text is 
 
 ---
 
-### remove_text
+### remove-text
 
 **Command:**
 
@@ -167,7 +167,7 @@ Removes the document with the specified ID from the index.
 
 ---
 
-### estimate_cost
+### estimate-cost
 
 **Command:**
 
