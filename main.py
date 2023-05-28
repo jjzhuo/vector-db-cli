@@ -2,7 +2,7 @@ import os
 import click
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
-from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import TokenTextSplitter
 from langchain.document_loaders import TextLoader
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
@@ -30,12 +30,8 @@ def list_indices():
 @click.argument('index_name')
 @click.argument('input_file')
 def create_index(index_name, input_file):
-    loader = TextLoader(input_file)
-    documents = loader.load()
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
-    texts = text_splitter.split_documents(documents)
-    db = Chroma.from_documents(texts, embeddings, 
-                                     persist_directory=index_directory(index_name))
+    documents = split_text(input_file)
+    db = Chroma.from_documents(documents, embeddings, persist_directory=index_directory(index_name))
     db.persist()
 
 @cli.command()
@@ -90,10 +86,7 @@ def search_keyword(index_name, keyword):
 @click.argument('input_file')
 @click.option('--chunk_size', default=1000)
 def insert_text(index_name, input_file, chunk_size):
-    loader = TextLoader(input_file)
-    doc = loader.load()
-    text_splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=0)
-    documents = text_splitter.split_documents(doc)
+    documents = split_text(input_file, chunk_size)
     
     texts = [doc.page_content for doc in documents]
     metadatas = [doc.metadata for doc in documents]
@@ -114,7 +107,30 @@ def remove_text(index_name, id):
 @cli.command()
 @click.argument('input_file')
 def estimate_cost(input_file):
-    print(f"${embedding_cost(open(input_file).read())}")
+    string = open(input_file).read()
+    ntokens = num_tokens_from_string(string)
+    print(f"Num of tokens: {ntokens}")
+    cost = ntokens * ADA_EMBED_PRICE / 1000
+    print(f"${cost}")
+
+@cli.command()
+@click.argument('input_file')
+@click.option('--chunk_size', default=4000)
+def split(input_file, chunk_size):
+    documents = split_text(input_file, chunk_size)
+    # import pdb;pdb.set_trace()
+    filename, extension = os.path.splitext(input_file)
+    for i, doc in enumerate(documents):
+        fn = f'{filename}-{i+1}-of-{len(documents)}{extension}'
+        print(f"writing: {fn}")
+        with open(fn, 'w') as f:
+            f.write(doc.page_content)
+
+def split_text(input_file, chunk_size):
+    loader = TextLoader(input_file)
+    doc = loader.load()
+    text_splitter = TokenTextSplitter(chunk_size=chunk_size)
+    return text_splitter.split_documents(doc)
 
 def num_tokens_from_string(string: str, encoding_name: str = "cl100k_base") -> int:
     encoding = tiktoken.get_encoding(encoding_name)
